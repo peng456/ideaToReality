@@ -1,0 +1,267 @@
+﻿
+#  为在操作系统执行
+// 解释
+
+svn cleanup报错的时候解决
+http://blog.csdn.net/luojian520025/article/details/22196865
+
+---------------------------------------------
+#编辑自启动,php常驻内存的脚本等等
+#vi /etc/rc.local
+内容如下
+
+    #!/bin/sh
+    #
+    # This script will be executed *after* all the other init scripts.
+    # You can put your own initialization stuff in here if you don't
+    # want to do the full Sys V style init stuff.
+
+    touch /var/lock/subsys/local     //就是说开机后 rc.local的程序已经启动了, 防止重复运行
+
+    sleep 3
+    /usr/bin/php /data/www/websocket/auction/gatewayworker/start.php start -d &   //此处“&”必须添加，不然重启系统不执行
+
+    sleep 5
+    /usr/local/bin/supervise /data/www/html/oss/gearman_worker &
+---------------------------------------------
+
+
+云服务器环境：CentOS 6.5 64位
+
+yum相关参考
+http://www.linuxidc.com/Linux/2014-10/108314.htm
+http://my.oschina.net/ifeixiang/blog/370391
+
+添加软件源 到本系统（系统可以从网址下载需要的 软件包）
+
+#rpm -Uvh http://mirror.webtatic.com/yum/el6/latest.rpm
+#rpm -Uvh http://dev.mysql.com/get/mysql-community-release-el6-5.noarch.rpm
+
+#yum clean all
+#yum makecache
+#yum update
+
+阿里云磁盘挂载（参考博客如下）（当主盘足够大时，此操作非必须）
+http://www.cnblogs.com/dudu/archive/2012/12/07/aliyun-linux-fdisk.html
+
+
+---------------------------------------------
+配置memcached 服务器端
+#yum -y install memcached.x86_64
+
+将memcached加入启动列表
+#chkconfig --level 2345 memcached on（不用这个了）
+
+配置
+#vi /etc/sysconfig/memcached
+修改如下：
+    PORT="11211"
+    USER="memcached"
+    MAXCONN="10240"
+    CACHESIZE="512"
+    OPTIONS="-d -l 127.0.0.1 -P /var/run/memcached/memcached.pid"
+
+#chkconfig –-add memcached
+#chkconfig memcached on
+#chkconfig --list   //检查此服务 是否 在系统服务列表
+---------------------------------------------
+
+------------svn and rzsz--------------------
+#yum -y install subversion.x86_64
+#yum -y install lrzsz.x86_64
+
+如果需要在本机 搭建svn版本库 则执行 下列命令
+
+#mkdir -p /data/svn_data/tocar
+#svnadmin create /data/svn_data/tocar/
+#vi /data/svn_data/tocar/conf/svnserve.conf
+#vi /data/svn_data/tocar/conf/authz
+#vi /data/svn_data/tocar/conf/passwd
+
+编辑启动配置
+#vi /etc/sysconfig/svnserve
+修改如下：
+    OPTIONS=" -r /data/svn_data/tocar/ "
+
+#chkconfig –-add svnserve
+#chkconfig svnserve on
+#chkconfig --list   //检查此服务 是否 在系统服务列表
+------------------------------------
+
+-------------php安装--------------------------------
+#yum remove php php-* httpd* php* libmemcached*    //先清除所有版本，以免安装 是 有版本 冲突
+#yum install -y libmemcached10-devel.x86_64 libmemcached10.x86_64
+#yum install -y php56w.x86_64
+#yum install -y php56w-cli.x86_64 php56w-common.x86_64
+#yum install -y php56w-devel.x86_64
+#yum install -y php56w-process.x86_64
+#yum install -y php56w-fpm.x86_64
+#yum install -y php56w-mysqlnd.x86_64
+#yum install -y php56w-opcache.x86_64
+#yum install -y php56w-pecl-memcached.x86_64
+#yum install -y php56w-xml.x86_64
+#yum install -y php56w-pecl-xdebug.x86_64
+#yum install -y php56w-mbstring.x86_64
+#yum install -y php56w-pecl-gearman.x86_64
+#yum install -y php56w-pecl-igbinary.x86_64 php56w-pecl-igbinary-devel.x86_64
+#yum install -y php56w-mcrypt.x86_64
+#yum install -y php56w-pecl-imagick.x86_64
+#yum install -y php56w-pecl-redis.x86_64
+
+
+禁用x-debug  目前调试用不到，会影响性能
+#vi /etc/php.d/xdebug.ini
+修改如下：
+   ;zend_extension=/usr/lib64/php/modules/xdebug.so //在 行首加“；” 注释掉此行
+
+-------------php安装--------------------------------
+
+
+---------------------------------------------
+workerman安装，参考 http://www.workerman.net/install
+
+yum install -y libevent-devel.x86_64       //依赖库
+pecl install channel://pecl.php.net/libevent-0.1.0     //提示libevent installation [autodetect]: 时按回车
+---------------------------------------------
+
+---------------------------------------------
+编辑配置文件并启动php-fpm
+#vi /etc/php-fpm.conf
+#vi /etc/php.ini
+#vi /etc/php.d/sockets.ini
+扩展必须在sockets扩展之后加载 （libevent.so 依赖于 sockets.so 库）（系统将 在/etc/php.d/ 的 文件 按照顺序加载，如果前面的库依赖后面的库，则会报错）
+所以解决方法就是将libevent.so加入到sockets.ini中最下面(extension=libevent.so	)
+/usr/sbin/php-fpm
+---------------------------------------------
+
+-----------------gearman 服务器安装-----------------------------------------------
+#yum install -y gearmand.x86_64
+
+编辑配置文件
+#vi /etc/sysconfig/gearmand
+修改配置：
+    OPTIONS=" -L 127.0.0.1 -p 4730 -t 100 -R "
+命令 启动
+gearmand -L 127.0.0.1 -p 4730 -u root -t 100 -R -d
+---------------------------------------------------------------------
+
+--------------nginx 安装------------------------------
+#yum search nginx
+#yum -y install nginx.x86_64
+
+查看cpu信息配置nginx服务器
+# cat /proc/cpuinfo
+设置php-fpm / gzip / Access-Control-Allow-Origin
+
+# vi /etc/nginx/nginx.conf
+
+修改配置如下：     //因为新申请的 主机   4核cpu  8G内存 ssd  所以链接数  设置 都很大
+
+	//设置进程数/连接数 内容如下
+		worker_processes  1;        //理论上来说按照cpu核心数的倍数 ；一般来说，设置成CPU核的数量即可 例如：单核 ：1 四核： 4
+		events {
+			worker_connections  10240;   //http://blog.csdn.net/sasoritattoo/article/details/9310133
+		}
+	//nginx跨域设置，http://www.cnblogs.com/Darren_code/p/cors.html   ，  http://www.douban.com/note/382496653/?type=like
+	//内容如下
+		add_header Access-Control-Allow-Origin *;
+		add_header Access-Control-Allow-Headers DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type;
+		add_header Access-Control-Allow-Methods GET,POST,OPTIONS;
+
+    //设置连接时常 如果有费时操作则设置 大点 如上传 图片 文件 、长连接等
+    keepalive_timeout  650;   // （0 则长连接就会被关闭）   参考 http://blog.csdn.net/super_scan/article/details/41451203
+
+
+	//设置 gzip压缩  内容如下：
+		gzip  on;
+		gzip_min_length 2k;
+        gzip_buffers 4 16k;
+        #gzip_http_version 1.0;
+        gzip_comp_level 6;
+        gzip_types text/json application/javascript text/plain application/x-javascript text/css application/xml text/javascript application/x-httpd-php image/jpeg image/gif image/png;
+        gzip_vary on;
+        gzip_disable "MSIE [1-6]\.";
+
+    #vi /etc/nginx/conf.d/default.conf
+
+
+    //修改如下:
+     location / {
+            root   /data/www/html;                 //webserve 主目录（目录需要自己mkdir)
+            index  index.html index.htm index.php; //添加了 index.php
+        }
+
+     location ~ \.php$ {
+        root           /data/www/html;     //修改
+        fastcgi_pass   127.0.0.1:9000;     //修改   fastcgi 监控9000 端口   nginx server 监控端口 为 80
+        fastcgi_index  index.php;          //默认打开文件
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+
+    -------------未处理---按需自己处理------------------
+    error_page  404              /404.html;
+    location = /404.html {
+        root   /usr/share/nginx/html;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+    -------------未处理---------------------
+
+	//nginx 代理转发设置 在server域内
+	//添加如下
+        large_client_header_buffers 4 16k;
+        client_max_body_size 30m;
+        client_body_buffer_size 128k;
+        fastcgi_connect_timeout 300;
+        fastcgi_read_timeout 300;
+        fastcgi_send_timeout 300;
+        fastcgi_buffer_size 64k;
+        fastcgi_buffers   4 32k;
+        fastcgi_busy_buffers_size 64k;
+        fastcgi_temp_file_write_size 64k;
+
+
+//启动
+service nginx start
+----------------nginx 安装-----------------------------
+
+
+php-fpm 等加入服务
+#chkconfig httpd off
+#chkconfig –-add nginx
+#chkconfig nginx on
+#chkconfig –-add php-fpm
+#chkconfig php-fpm on
+#chkconfig –-add gearmand
+#chkconfig gearmand on
+如果有 svnserve
+#chkconfig –-add svnserve
+#chkconfig svnserve on
+
+
+#安装git
+yum install git
+
+#在需要的文件夹，用git安装workerman (http://doc3.workerman.net/)
+git clone https://github.com/walkor/workerman
+
+重启检查服务是否 能够开机启动
+#reboot now
+
+#netstat -lnp
+
+#chkconfig --list  是否在 系统的服务列表
+
+
+了解：
+yum    http://blog.csdn.net/zhaoyue007101/article/details/8485186
+
+系统  读取 /etc/sysconfig/  目录下 各文件 中都会各自的服务配置   //所以 可以添加  OPTIONS
+
+/etc/init.d/      可执行文件（各个服务）  一般是linux以rpm包安装时设定的一些服务的启动脚本。系统在安装时装了好多rpm包，这里面就有很多对应的脚本。执行这些脚本可以用来启动，停止，重启这些服务。
+                      http://www.cnblogs.com/gzggyy/archive/2013/01/28/2879768.html
+/etc/rc.d/init.d  这个目录下的脚本就类似与windows中的注册表，在系统启动的时候执行。程序运行到这里(init进程读取了运行级别)
