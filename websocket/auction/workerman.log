@@ -1,0 +1,39 @@
+2016-01-16 09:45:52 Workerman[auction.php] start in DAEMON mode
+2016-01-16 09:46:24 Workerman[auction.php] start in DEBUG mode
+2016-01-16 09:48:32 Workerman[auction.php] start in DAEMON mode
+2016-01-16 10:00:49 Workerman[auction.php] stop 
+2016-01-16 10:00:49 Workerman[auction.php] is stoping ...
+2016-01-16 10:00:49 Workerman[auction.php] Stopping ...
+2016-01-16 10:00:49 Workerman[auction.php] has been stopped
+2016-01-16 10:00:49 Workerman[auction.php] stop success
+2016-01-16 10:00:59 Workerman[auction.php] start in DEBUG mode
+2016-01-16 10:11:29 Workerman[auction.php] Stopping ...
+2016-01-16 10:11:29 Workerman[auction.php] has been stopped
+2016-01-16 10:11:41 Workerman[auction.php] start in DAEMON mode
+2016-01-18 12:59:27 Workerman[auction.php] reload 
+2016-01-18 12:59:27 Workerman[auction.php] reloading
+2016-01-18 12:59:27 Workerman[auction.php] reload
+2016-01-18 13:02:23 Workerman[auction.php] reload 
+2016-01-18 13:02:23 Workerman[auction.php] reloading
+2016-01-18 13:02:23 Workerman[auction.php] reload
+2016-01-18 13:03:30 worker[none:2948] exit with status 15
+2016-01-18 13:03:32 worker[none:2949] exit with status 15
+2016-01-18 13:04:22 Workerman[auction.php] stop 
+2016-01-18 13:04:22 Workerman[auction.php] is stoping ...
+2016-01-18 13:04:22 Workerman[auction.php] Stopping ...
+2016-01-18 13:04:22 Workerman[auction.php] has been stopped
+2016-01-18 13:04:22 Workerman[auction.php] stop success
+2016-01-18 13:04:26 Workerman[auction.php] start in DEBUG mode
+2016-01-18 15:11:33 Workerman[auction.php] Stopping ...
+2016-01-18 15:11:33 Workerman[auction.php] has been stopped
+2016-01-18 15:11:48 Workerman[auction.php] start in DEBUG mode
+2016-01-19 11:40:06 Workerman[auction.php] start in DAEMON mode
+2016-01-19 11:53:49 Workerman[auction.php] stop 
+2016-01-19 11:53:49 Workerman[auction.php] is stoping ...
+2016-01-19 11:53:49 Workerman[auction.php] Stopping ...
+2016-01-19 11:53:50 Workerman[auction.php] has been stopped
+2016-01-19 11:53:50 Workerman[auction.php] stop success
+2016-01-21 14:43:38 Workerman[auction.php] stop 
+2016-01-21 14:43:38 Workerman[auction.php] not run
+2016-01-21 14:43:38 Workerman[auction.php] is stoping ...
+2016-01-21 14:43:38 Workerman[auction.php] stop success
